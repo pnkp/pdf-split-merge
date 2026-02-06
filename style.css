@@ -236,6 +236,11 @@ h2 {
     gap: 10px;
 }
 
+.download-all-btn {
+    display: none;
+    margin: 0 0 15px;
+}
+
 .download-item {
     background-color: #f8f9ff;
     padding: 15px;

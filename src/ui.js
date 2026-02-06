@@ -9,6 +9,7 @@ const elements = {
     progressFill: document.getElementById('progress-fill'),
     progressText: document.getElementById('progress-text'),
     downloadLinks: document.getElementById('download-links'),
+    downloadAllButton: document.getElementById('download-all-btn'),
     dropZone: document.getElementById('drop-zone'),
     uploadInput: document.getElementById('pdf-upload'),
     splitButton: document.getElementById('split-btn'),
@@ -39,6 +40,7 @@ export function showFileInfo(numPages) {
 export function resetResults() {
     elements.results.style.display = 'none';
     elements.downloadLinks.innerHTML = '';
+    setDownloadAllHandler(null);
 }
 
 export function showProgress() {
@@ -83,6 +85,12 @@ export function renderDownloadLinks(items) {
         linkDiv.appendChild(downloadLink);
         elements.downloadLinks.appendChild(linkDiv);
     });
+}
+
+export function setDownloadAllHandler(handler) {
+    if (!elements.downloadAllButton) return;
+    elements.downloadAllButton.onclick = handler;
+    elements.downloadAllButton.style.display = handler ? 'block' : 'none';
 }
 
 export function setDropZoneActive(isActive) {
