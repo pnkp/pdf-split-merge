@@ -1,78 +1,104 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PDF Split & Merge</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>PDF Split & Merge</h1>
+      <h1>PDF Split & Merge</h1>
 
-        <h2>Split PDF into Pages</h2>
-        <div class="upload-section">
-            <label for="pdf-upload" class="upload-label" id="drop-zone">
-                <span>Drag a PDF file here or click to choose</span>
-            </label>
-            <input type="file" id="pdf-upload" accept="application/pdf">
+      <h2>Split PDF into Pages</h2>
+      <div class="upload-section">
+        <label for="pdf-upload" class="upload-label" id="drop-zone">
+          <span>Drag a PDF file here or click to choose</span>
+        </label>
+        <input type="file" id="pdf-upload" accept="application/pdf" />
+      </div>
+
+      <div id="file-info" class="file-info" style="display: none">
+        <p><strong>Selected file:</strong> <span id="filename"></span></p>
+        <p><strong>Page count:</strong> <span id="page-count"></span></p>
+        <button id="split-btn" class="btn-primary">Split PDF</button>
+      </div>
+
+      <div id="progress" class="progress-section" style="display: none">
+        <p>
+          <span id="progress-label">Processing</span>...
+          <span id="progress-text">0%</span>
+        </p>
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
         </div>
+      </div>
 
-        <div id="file-info" class="file-info" style="display: none;">
-            <p><strong>Selected file:</strong> <span id="filename"></span></p>
-            <p><strong>Page count:</strong> <span id="page-count"></span></p>
-            <button id="split-btn" class="btn-primary">Split PDF</button>
+      <div id="results" class="results-section" style="display: none">
+        <h2>Results</h2>
+        <p class="success-message">
+          PDF has been split into <span id="result-count"></span> files!
+        </p>
+        <button
+          id="download-all-btn"
+          class="btn-primary download-all-btn"
+          type="button"
+        >
+          Download all pages
+        </button>
+        <div id="download-links"></div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <h2>Merge Multiple PDFs</h2>
+      <div class="upload-section">
+        <label for="merge-upload" class="upload-label" id="merge-drop-zone">
+          <span>Drag multiple PDF files here or click to choose</span>
+        </label>
+        <input
+          type="file"
+          id="merge-upload"
+          accept="application/pdf"
+          multiple
+        />
+      </div>
+
+      <div id="merge-info" class="file-info" style="display: none">
+        <p><strong>Selected files:</strong> <span id="merge-count"></span></p>
+        <ul id="merge-list" class="file-list"></ul>
+        <button id="merge-btn" class="btn-primary">Merge PDFs</button>
+      </div>
+
+      <div id="merge-results" class="results-section" style="display: none">
+        <h2>Merge Result</h2>
+        <p class="success-message">Your merged PDF is ready!</p>
+        <div id="merge-download" class="download-item">
+          <a id="merge-download-link" class="download-link" href="#"
+            >Download merged PDF</a
+          >
         </div>
+      </div>
 
-        <div id="progress" class="progress-section" style="display: none;">
-            <p><span id="progress-label">Processing</span>... <span id="progress-text">0%</span></p>
-            <div class="progress-bar">
-                <div id="progress-fill" class="progress-fill"></div>
-            </div>
-        </div>
-
-        <div id="results" class="results-section" style="display: none;">
-            <h2>Results</h2>
-            <p class="success-message">PDF has been split into <span id="result-count"></span> files!</p>
-            <button id="download-all-btn" class="btn-primary download-all-btn" type="button">Download all pages</button>
-            <div id="download-links"></div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <h2>Merge Multiple PDFs</h2>
-        <div class="upload-section">
-            <label for="merge-upload" class="upload-label" id="merge-drop-zone">
-                <span>Drag multiple PDF files here or click to choose</span>
-            </label>
-            <input type="file" id="merge-upload" accept="application/pdf" multiple>
-        </div>
-
-        <div id="merge-info" class="file-info" style="display: none;">
-            <p><strong>Selected files:</strong> <span id="merge-count"></span></p>
-            <ul id="merge-list" class="file-list"></ul>
-            <button id="merge-btn" class="btn-primary">Merge PDFs</button>
-        </div>
-
-        <div id="merge-results" class="results-section" style="display: none;">
-            <h2>Merge Result</h2>
-            <p class="success-message">Your merged PDF is ready!</p>
-            <div id="merge-download" class="download-item">
-                <a id="merge-download-link" class="download-link" href="#">Download merged PDF</a>
-            </div>
-        </div>
-
-        <div class="project-info">
-            <p>This project is open source. Your files are processed only in your browser and are never uploaded or stored anywhere.</p>
-            <a class="project-link" href="https://github.com/pnkp/pdf-split-merge" target="_blank" rel="noopener noreferrer">
-                View the GitHub repository
-            </a>
-        </div>
+      <div class="project-info">
+        <p>
+          This project is open source. Your files are processed only in your
+          browser and are never uploaded or stored anywhere.
+        </p>
+        <a
+          class="project-link"
+          href="https://github.com/pnkp/pdf-split-merge"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View the GitHub repository
+        </a>
+      </div>
     </div>
 
     <script type="module" src="src/app.js"></script>
-</body>
+  </body>
 </html>
