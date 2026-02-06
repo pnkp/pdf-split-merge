@@ -44,6 +44,10 @@ async function handleFile(file) {
     }
 }
 
+function mergeFileLists(existingFiles, newFiles) {
+    return [...existingFiles, ...newFiles];
+}
+
 async function handleMergeFiles(files) {
     const pdfFiles = files.filter((file) => file.type === 'application/pdf');
     if (pdfFiles.length === 0) {
@@ -51,9 +55,22 @@ async function handleMergeFiles(files) {
         return;
     }
 
-    mergeFiles = pdfFiles;
-    showMergeInfo(mergeFiles);
+    mergeFiles = mergeFileLists(mergeFiles, pdfFiles);
+    showMergeInfo(mergeFiles, handleMergeReorder, handleMergeRemove);
     resetMergeResults();
+}
+
+function handleMergeReorder(fromIndex, toIndex) {
+    const updated = [...mergeFiles];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    mergeFiles = updated;
+    showMergeInfo(mergeFiles, handleMergeReorder, handleMergeRemove);
+}
+
+function handleMergeRemove(index) {
+    mergeFiles = mergeFiles.filter((_, currentIndex) => currentIndex !== index);
+    showMergeInfo(mergeFiles, handleMergeReorder, handleMergeRemove);
 }
 
 elements.uploadInput.addEventListener('change', async (event) => {
@@ -68,6 +85,7 @@ elements.mergeInput.addEventListener('change', async (event) => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
     await handleMergeFiles(files);
+    event.target.value = '';
 });
 
 setupDragAndDropMultiple(elements.mergeDropZone, handleMergeFiles, setMergeDropZoneActive);

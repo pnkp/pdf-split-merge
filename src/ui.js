@@ -105,22 +105,102 @@ function formatFileSize(bytes) {
     return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
-export function showMergeInfo(files) {
-    elements.mergeCount.textContent = files.length;
+function setMergeCount(count) {
+    elements.mergeCount.textContent = count;
+}
+
+function clearMergeList() {
     elements.mergeList.innerHTML = '';
-    files.forEach((file) => {
-        const item = document.createElement('li');
-        item.textContent = `${file.name} (${formatFileSize(file.size)})`;
+}
+
+function attachDragHandlers(item, onReorder) {
+    item.addEventListener('dragstart', (event) => {
+        item.classList.add('is-dragging');
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', item.dataset.index);
+    });
+
+    item.addEventListener('dragend', () => {
+        item.classList.remove('is-dragging');
+    });
+
+    item.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    });
+
+    item.addEventListener('dragenter', (event) => {
+        event.preventDefault();
+        item.classList.add('drag-over');
+    });
+
+    item.addEventListener('dragleave', () => {
+        item.classList.remove('drag-over');
+    });
+
+    item.addEventListener('drop', (event) => {
+        event.preventDefault();
+        item.classList.remove('drag-over');
+        const fromIndex = Number(event.dataTransfer.getData('text/plain'));
+        const toIndex = Number(item.dataset.index);
+        if (!Number.isNaN(fromIndex) && !Number.isNaN(toIndex) && fromIndex !== toIndex) {
+            onReorder(fromIndex, toIndex);
+        }
+    });
+}
+
+function createMergeListItem(file, index, onReorder, onRemove) {
+    const item = document.createElement('li');
+    const text = document.createElement('span');
+    text.className = 'file-list-text';
+    text.title = file.name;
+    item.draggable = Boolean(onReorder);
+    text.textContent = `${file.name} (${formatFileSize(file.size)})`;
+    item.dataset.index = String(index);
+    if (onReorder) {
+        attachDragHandlers(item, onReorder);
+    }
+    if (onRemove) {
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'file-remove';
+        removeButton.textContent = 'Remove';
+        removeButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            onRemove(index);
+        });
+        item.appendChild(text);
+        item.appendChild(removeButton);
+    } else {
+        item.appendChild(text);
+    }
+    return item;
+}
+
+function renderMergeList(files, onReorder, onRemove) {
+    files.forEach((file, index) => {
+        const item = createMergeListItem(file, index, onReorder, onRemove);
         elements.mergeList.appendChild(item);
     });
+}
+
+function showMergeSection() {
     elements.mergeInfo.style.display = 'block';
     elements.mergeResults.style.display = 'none';
+}
+
+export function showMergeInfo(files, onReorder, onRemove) {
+    setMergeCount(files.length);
+    clearMergeList();
+    renderMergeList(files, onReorder, onRemove);
+    showMergeSection();
 }
 
 export function showMergeResults(item) {
     elements.mergeDownloadLink.href = item.url;
     elements.mergeDownloadLink.download = item.filename;
     elements.mergeDownloadLink.textContent = `📄 ${item.filename}`;
+    elements.mergeDownloadLink.title = item.filename;
     elements.mergeResults.style.display = 'block';
 }
 
