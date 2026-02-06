@@ -1,11 +1,11 @@
 export async function splitPdf(file, totalPages, onProgress) {
     if (!file) {
-        throw new Error('Brak pliku do podziału.');
+        throw new Error('No file provided for splitting.');
     }
 
     const { PDFDocument } = window.PDFLib || {};
     if (!PDFDocument) {
-        throw new Error('Nie znaleziono PDFLib. Upewnij się, że skrypt pdf-lib jest załadowany.');
+        throw new Error('PDFLib not found. Make sure the pdf-lib script is loaded.');
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -23,7 +23,7 @@ export async function splitPdf(file, totalPages, onProgress) {
         const pdfBytes = await newPdf.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
-        const filename = `${baseFilename}_strona_${pageNum}.pdf`;
+        const filename = `${baseFilename}_page_${pageNum}.pdf`;
 
         downloadLinksArray.push({ url, filename });
 

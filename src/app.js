@@ -23,7 +23,7 @@ const elements = getElements();
 
 async function handleFile(file) {
     if (!file || file.type !== 'application/pdf') {
-        alert('Proszę wybrać plik PDF!');
+        alert('Please choose a PDF file!');
         return;
     }
 
@@ -34,7 +34,7 @@ async function handleFile(file) {
         pdfDocument = await loadPdfDocument(file);
         showFileInfo(pdfDocument.numPages);
     } catch (error) {
-        alert('Błąd wczytywania pliku PDF: ' + error.message);
+        alert('Error loading PDF file: ' + error.message);
     }
 }
 
@@ -48,7 +48,7 @@ setupDragAndDrop(elements.dropZone, handleFile, setDropZoneActive);
 
 elements.splitButton.addEventListener('click', async () => {
     if (!pdfDocument) {
-        alert('Najpierw wybierz plik PDF!');
+        alert('Please select a PDF file first!');
         return;
     }
 
@@ -65,7 +65,7 @@ elements.splitButton.addEventListener('click', async () => {
         renderDownloadLinks(downloadLinksArray);
 
     } catch (error) {
-        alert('Błąd podczas dzielenia PDF: ' + error.message);
+        alert('Error while splitting PDF: ' + error.message);
         console.error(error);
         hideProgress();
     }

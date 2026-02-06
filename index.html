@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dzielenie PDF na pojedyncze strony</title>
+    <title>Split PDF into Single Pages</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,31 +11,31 @@
 </head>
 <body>
     <div class="container">
-        <h1>Dzielenie PDF na pojedyncze strony</h1>
+        <h1>Split PDF into Single Pages</h1>
 
         <div class="upload-section">
             <label for="pdf-upload" class="upload-label" id="drop-zone">
-                <span>Przeciągnij plik PDF tutaj lub kliknij, aby wybrać</span>
+                <span>Drag a PDF file here or click to choose</span>
             </label>
             <input type="file" id="pdf-upload" accept="application/pdf">
         </div>
 
         <div id="file-info" class="file-info" style="display: none;">
-            <p><strong>Wybrany plik:</strong> <span id="filename"></span></p>
-            <p><strong>Liczba stron:</strong> <span id="page-count"></span></p>
-            <button id="split-btn" class="btn-primary">Podziel PDF</button>
+            <p><strong>Selected file:</strong> <span id="filename"></span></p>
+            <p><strong>Page count:</strong> <span id="page-count"></span></p>
+            <button id="split-btn" class="btn-primary">Split PDF</button>
         </div>
 
         <div id="progress" class="progress-section" style="display: none;">
-            <p>Przetwarzanie... <span id="progress-text">0%</span></p>
+            <p>Processing... <span id="progress-text">0%</span></p>
             <div class="progress-bar">
                 <div id="progress-fill" class="progress-fill"></div>
             </div>
         </div>
 
         <div id="results" class="results-section" style="display: none;">
-            <h2>Wyniki</h2>
-            <p class="success-message">PDF został podzielony na <span id="result-count"></span> plików!</p>
+            <h2>Results</h2>
+            <p class="success-message">PDF has been split into <span id="result-count"></span> files!</p>
             <div id="download-links"></div>
         </div>
     </div>
