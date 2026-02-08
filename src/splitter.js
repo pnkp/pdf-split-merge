@@ -28,8 +28,7 @@ export async function splitPdf(file, totalPages, onProgress) {
         downloadLinksArray.push({ url, filename });
 
         if (onProgress) {
-            const progress = Math.round((pageNum / totalPages) * 100);
-            onProgress(progress);
+            onProgress(pageNum, totalPages);
         }
     }
 

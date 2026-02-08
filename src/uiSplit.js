@@ -56,9 +56,15 @@ export function showResults(totalPages) {
   elements.resultCount.textContent = totalPages;
 }
 
-export async function renderSplitTiles(pdfDocument, items, onSelectionChange) {
+export async function renderSplitTiles(
+  entries,
+  onSelectionChange,
+  { append = false, startIndex = 0 } = {},
+) {
   if (!elements.splitGrid) return;
-  elements.splitGrid.innerHTML = "";
+  if (!append) {
+    elements.splitGrid.innerHTML = "";
+  }
 
   function triggerDownload(item) {
     const link = document.createElement("a");
@@ -69,8 +75,10 @@ export async function renderSplitTiles(pdfDocument, items, onSelectionChange) {
     link.remove();
   }
 
-  for (let pageNum = 1; pageNum <= items.length; pageNum += 1) {
-    const page = await pdfDocument.getPage(pageNum);
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index];
+    const entryIndex = startIndex + index;
+    const page = await entry.pdfDocument.getPage(entry.pageNum);
     const viewport = page.getViewport({ scale: 0.5 });
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -82,13 +90,13 @@ export async function renderSplitTiles(pdfDocument, items, onSelectionChange) {
 
     const label = document.createElement("span");
     label.className = "preview-label";
-    label.textContent = `Page ${pageNum}`;
+    label.textContent = `${entry.fileName} - page ${entry.pageNum}`;
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.className = "preview-checkbox";
     checkbox.checked = true;
-    checkbox.dataset.page = String(pageNum);
+    checkbox.dataset.index = String(entryIndex);
     previewItem.classList.toggle("is-selected", checkbox.checked);
 
     const downloadButton = document.createElement("button");
@@ -97,7 +105,7 @@ export async function renderSplitTiles(pdfDocument, items, onSelectionChange) {
     downloadButton.className = "preview-download";
     downloadButton.addEventListener("click", (event) => {
       event.preventDefault();
-      triggerDownload(items[pageNum - 1]);
+      triggerDownload(entry.item);
     });
 
     previewItem.appendChild(canvas);
