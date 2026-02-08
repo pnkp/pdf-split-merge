@@ -1,6 +1,6 @@
-import { splitPdf } from "./splitter.js";
-import { initPdfJsWorker, loadPdfDocument } from "./pdfLoader.js";
-import { setupDragAndDropMultiple } from "./dragDrop.js";
+import { splitPdf } from "./pdf/splitter.js";
+import { initPdfJsWorker, loadPdfDocument } from "./pdf/pdfLoader.js";
+import { setupDragAndDropMultiple } from "./ui/dragDrop.js";
 import {
   getSplitElements,
   hideProgress,
@@ -13,7 +13,16 @@ import {
   getDownloadSelectedButton,
   getCreateSelectedButton,
   updateResultCount,
-} from "./uiSplit.js";
+} from "./ui/uiSplit.js";
+import { downloadSelected } from "./pdf/downloadHandler.js";
+import { createPdfFromSelected } from "./pdf/mergeHandler.js";
+import {
+  getSelectedIds,
+  updateButtonState,
+  getDownloadButtonText,
+  getMergeButtonText,
+} from "./utils/selectionManager.js";
+import { validatePdfFiles, showError } from "./utils/errorHandler.js";
 
 initPdfJsWorker();
 
@@ -27,26 +36,21 @@ const downloadSelectedButton = getDownloadSelectedButton();
 const createSelectedButton = getCreateSelectedButton();
 
 async function handleFiles(files) {
-  const pdfCandidates = files.filter((file) => file.type === "application/pdf");
-  if (pdfCandidates.length === 0) {
-    alert("Please choose PDF files!");
-    return;
-  }
-
-  const newFiles = pdfCandidates;
-  pdfFiles = [...pdfFiles, ...newFiles];
   try {
+    const newFiles = validatePdfFiles(files);
+    pdfFiles = [...pdfFiles, ...newFiles];
+
     const newDocuments = await Promise.all(
-      newFiles.map((file) => loadPdfDocument(file)),
+      newFiles.map((file) => loadPdfDocument(file))
     );
     pdfDocuments = [...pdfDocuments, ...newDocuments];
     const totalPages = pdfDocuments.reduce(
       (sum, doc) => sum + doc.numPages,
-      0,
+      0
     );
     const newTotalPages = newDocuments.reduce(
       (sum, doc) => sum + doc.numPages,
-      0,
+      0
     );
     await runSplit({
       files: newFiles,
@@ -56,161 +60,32 @@ async function handleFiles(files) {
       append: splitEntries.length > 0,
     });
   } catch (error) {
-    alert("Error loading PDF file: " + error.message);
+    showError("Error loading PDF file", error);
   }
-}
-
-function getSelectedIds() {
-  const checkboxes = Array.from(
-    document.querySelectorAll(".preview-checkbox:checked"),
-  );
-  return checkboxes
-    .map((checkbox) => Number(checkbox.dataset.entryId))
-    .filter((entryId) => Number.isFinite(entryId))
-    .sort((a, b) => a - b);
 }
 
 function updateDownloadSelectedState() {
   if (!downloadSelectedButton) return;
   const selectedIds = getSelectedIds();
-  downloadSelectedButton.disabled = selectedIds.length === 0;
-  downloadSelectedButton.textContent =
-    selectedIds.length > 0
-      ? selectedIds.length === 1
-        ? "Download selected page"
-        : `Download selected pages (ZIP: ${selectedIds.length})`
-      : "Download selected pages";
+  updateButtonState(
+    downloadSelectedButton,
+    selectedIds,
+    "Download selected pages",
+    getDownloadButtonText
+  );
 }
 
 function updateCreateSelectedState() {
   if (!createSelectedButton) return;
   const selectedIds = getSelectedIds();
-  createSelectedButton.disabled = selectedIds.length === 0;
-  createSelectedButton.textContent =
-    selectedIds.length > 0
-      ? `Merge selected (${selectedIds.length} pages)`
-      : "Merge selected";
-}
-
-function triggerDownload(url, filename) {
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-}
-
-async function buildZip(items, pageNumbers) {
-  if (!window.JSZip) {
-    throw new Error("ZIP library not available.");
-  }
-
-  const zip = new window.JSZip();
-  for (const entryId of pageNumbers) {
-    const entry = items.find((current) => current.id === entryId);
-    const item = entry?.item;
-    if (!item) continue;
-    const response = await fetch(item.url);
-    const blob = await response.blob();
-    zip.file(item.filename, blob);
-  }
-
-  const baseFilename = pdfFiles.length
-    ? "split"
-    : "documents";
-  const zipBlob = await zip.generateAsync(
-    { type: "blob" },
-    (metadata) => {
-      if (!downloadSelectedButton) return;
-      const percent = Math.round(metadata.percent);
-      downloadSelectedButton.textContent = `Preparing ZIP (${percent}%)`;
-    },
+  updateButtonState(
+    createSelectedButton,
+    selectedIds,
+    "Merge selected",
+    getMergeButtonText
   );
-  return { blob: zipBlob, filename: `${baseFilename}_pages.zip` };
 }
 
-function downloadSelected(items) {
-  const selectedIds = getSelectedIds();
-  if (selectedIds.length === 0) {
-    alert("Please select at least one page!");
-    return;
-  }
-
-  if (selectedIds.length === 1) {
-    const entry = items.find((current) => current.id === selectedIds[0]);
-    if (entry?.item) {
-      triggerDownload(entry.item.url, entry.item.filename);
-    }
-    return;
-  }
-
-  if (downloadSelectedButton) {
-    downloadSelectedButton.disabled = true;
-    downloadSelectedButton.textContent = "Preparing ZIP for selected pages";
-  }
-
-  buildZip(items, selectedIds)
-    .then(({ blob, filename }) => {
-      const url = URL.createObjectURL(blob);
-      triggerDownload(url, filename);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    })
-    .catch((error) => {
-      alert("Error while preparing ZIP: " + error.message);
-      console.error(error);
-    })
-    .finally(() => {
-      if (downloadSelectedButton) {
-        downloadSelectedButton.disabled = false;
-        updateDownloadSelectedState();
-      }
-    });
-}
-
-async function createPdfFromSelected() {
-  const selectedIds = getSelectedIds();
-  if (selectedIds.length === 0) {
-    alert("Please select at least one page!");
-    return;
-  }
-
-  const { PDFDocument } = window.PDFLib || {};
-  if (!PDFDocument) {
-    alert("PDFLib not found. Make sure the pdf-lib script is loaded.");
-    return;
-  }
-
-  if (createSelectedButton) {
-    createSelectedButton.disabled = true;
-    createSelectedButton.textContent = "Preparing merge";
-  }
-
-  try {
-    const newPdf = await PDFDocument.create();
-    for (const entryId of selectedIds) {
-      const entry = splitEntries.find((current) => current.id === entryId);
-      if (!entry?.item) continue;
-      const response = await fetch(entry.item.url);
-      const blob = await response.blob();
-      const sourcePdf = await PDFDocument.load(await blob.arrayBuffer());
-      const [copiedPage] = await newPdf.copyPages(sourcePdf, [0]);
-      newPdf.addPage(copiedPage);
-    }
-
-    const pdfBytes = await newPdf.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const baseFilename = "selected";
-    triggerDownload(url, `${baseFilename}_selected.pdf`);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } catch (error) {
-    alert("Error while creating PDF: " + error.message);
-    console.error(error);
-  } finally {
-    updateCreateSelectedState();
-  }
-}
 
 function handleRemoveEntry(entryId, element) {
   splitEntries = splitEntries.filter((entry) => entry.id !== entryId);
@@ -291,19 +166,34 @@ async function runSplit({
 
     hideProgress();
     showResults(totalPagesAll);
-    await renderSplitTiles(entriesToRender, () => {
-      updateDownloadSelectedState();
-      updateCreateSelectedState();
-    }, handleRemoveEntry, { append, startIndex });
+    await renderSplitTiles(
+      entriesToRender,
+      () => {
+        updateDownloadSelectedState();
+        updateCreateSelectedState();
+      },
+      handleRemoveEntry,
+      { append, startIndex }
+    );
     if (downloadSelectedButton) {
-      downloadSelectedButton.onclick = () => downloadSelected(splitEntries);
+      downloadSelectedButton.onclick = () =>
+        downloadSelected(
+          splitEntries,
+          pdfFiles.length,
+          downloadSelectedButton,
+          updateDownloadSelectedState
+        );
     }
     if (createSelectedButton) {
-      createSelectedButton.onclick = () => createPdfFromSelected();
+      createSelectedButton.onclick = () =>
+        createPdfFromSelected(
+          splitEntries,
+          createSelectedButton,
+          updateCreateSelectedState
+        );
     }
   } catch (error) {
-    alert("Error while splitting PDF: " + error.message);
-    console.error(error);
+    showError("Error while splitting PDF", error);
     hideProgress();
   }
 }
