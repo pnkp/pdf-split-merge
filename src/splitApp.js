@@ -6,9 +6,7 @@ import {
   hideProgress,
   renderSplitTiles,
   resetResults,
-  setFilename,
   setDropZoneActive,
-  showFileInfo,
   showProgressWithLabel,
   showResults,
   updateProgress,
@@ -37,12 +35,6 @@ async function handleFiles(files) {
 
   const newFiles = pdfCandidates;
   pdfFiles = [...pdfFiles, ...newFiles];
-  setFilename(
-    pdfFiles.length === 1
-      ? pdfFiles[0].name
-      : `${pdfFiles.length} files selected`,
-  );
-
   try {
     const newDocuments = await Promise.all(
       newFiles.map((file) => loadPdfDocument(file)),
@@ -56,7 +48,6 @@ async function handleFiles(files) {
       (sum, doc) => sum + doc.numPages,
       0,
     );
-    showFileInfo(totalPages);
     await runSplit({
       files: newFiles,
       documents: newDocuments,
@@ -85,8 +76,10 @@ function updateDownloadSelectedState() {
   downloadSelectedButton.disabled = selectedIds.length === 0;
   downloadSelectedButton.textContent =
     selectedIds.length > 0
-      ? `Download selected (${selectedIds.length})`
-      : "Download selected";
+      ? selectedIds.length === 1
+        ? "Download selected page"
+        : `Download selected pages (ZIP: ${selectedIds.length})`
+      : "Download selected pages";
 }
 
 function updateCreateSelectedState() {
@@ -95,8 +88,8 @@ function updateCreateSelectedState() {
   createSelectedButton.disabled = selectedIds.length === 0;
   createSelectedButton.textContent =
     selectedIds.length > 0
-      ? `Create PDF (${selectedIds.length} pages)`
-      : "Create PDF from selected";
+      ? `Merge selected (${selectedIds.length} pages)`
+      : "Merge selected";
 }
 
 function triggerDownload(url, filename) {
@@ -154,7 +147,7 @@ function downloadSelected(items) {
 
   if (downloadSelectedButton) {
     downloadSelectedButton.disabled = true;
-    downloadSelectedButton.textContent = "Preparing ZIP";
+    downloadSelectedButton.textContent = "Preparing ZIP for selected pages";
   }
 
   buildZip(items, selectedIds)
@@ -190,7 +183,7 @@ async function createPdfFromSelected() {
 
   if (createSelectedButton) {
     createSelectedButton.disabled = true;
-    createSelectedButton.textContent = "Preparing PDF";
+    createSelectedButton.textContent = "Preparing merge";
   }
 
   try {
@@ -259,7 +252,7 @@ async function runSplit({
     }
     if (createSelectedButton) {
       createSelectedButton.disabled = true;
-      createSelectedButton.textContent = "Create PDF from selected";
+      createSelectedButton.textContent = "Merge selected";
     }
   }
 

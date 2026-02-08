@@ -1,7 +1,4 @@
 const elements = {
-  fileName: document.getElementById("filename"),
-  pageCount: document.getElementById("page-count"),
-  fileInfo: document.getElementById("file-info"),
   results: document.getElementById("results"),
   resultCount: document.getElementById("result-count"),
   progress: document.getElementById("progress"),
@@ -17,16 +14,6 @@ const elements = {
 
 export function getSplitElements() {
   return elements;
-}
-
-export function setFilename(name) {
-  elements.fileName.textContent = name;
-}
-
-export function showFileInfo(numPages) {
-  elements.pageCount.textContent = numPages;
-  elements.fileInfo.style.display = "block";
-  elements.results.style.display = "none";
 }
 
 export function resetResults() {
