@@ -1,3 +1,6 @@
+import { CANVAS_SCALE } from '../utils/constants.js';
+import { triggerDownload } from '../utils/fileDownloader.js';
+
 const elements = {
   results: document.getElementById("results"),
   resultCount: document.getElementById("result-count"),
@@ -58,19 +61,10 @@ export async function renderSplitTiles(
     elements.splitGrid.innerHTML = "";
   }
 
-  function triggerDownload(item) {
-    const link = document.createElement("a");
-    link.href = item.url;
-    link.download = item.filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }
-
   for (let index = 0; index < entries.length; index += 1) {
     const entry = entries[index];
     const page = await entry.pdfDocument.getPage(entry.pageNum);
-    const viewport = page.getViewport({ scale: 0.5 });
+    const viewport = page.getViewport({ scale: CANVAS_SCALE });
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     canvas.width = viewport.width;
@@ -96,7 +90,7 @@ export async function renderSplitTiles(
     downloadButton.className = "preview-download";
     downloadButton.addEventListener("click", (event) => {
       event.preventDefault();
-      triggerDownload(entry.item);
+      triggerDownload(entry.item.url, entry.item.filename);
     });
 
     const removeButton = document.createElement("button");
