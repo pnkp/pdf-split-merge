@@ -8,6 +8,7 @@ const elements = {
   progressLabel: document.getElementById("progress-label"),
   progressFill: document.getElementById("progress-fill"),
   progressText: document.getElementById("progress-text"),
+  downloadSelectedButton: document.getElementById("download-selected-btn"),
   splitGrid: document.getElementById("split-grid"),
   dropZone: document.getElementById("drop-zone"),
   uploadInput: document.getElementById("pdf-upload"),
@@ -55,7 +56,7 @@ export function showResults(totalPages) {
   elements.resultCount.textContent = totalPages;
 }
 
-export async function renderSplitTiles(pdfDocument, items) {
+export async function renderSplitTiles(pdfDocument, items, onSelectionChange) {
   if (!elements.splitGrid) return;
   elements.splitGrid.innerHTML = "";
 
@@ -97,10 +98,21 @@ export async function renderSplitTiles(pdfDocument, items) {
       if (event.target.closest("a")) return;
       checkbox.checked = !checkbox.checked;
       previewItem.classList.toggle("is-selected", checkbox.checked);
+      if (onSelectionChange) {
+        onSelectionChange();
+      }
     });
 
     await page.render({ canvasContext: context, viewport }).promise;
   }
+
+  if (onSelectionChange) {
+    onSelectionChange();
+  }
+}
+
+export function getDownloadSelectedButton() {
+  return elements.downloadSelectedButton;
 }
 
 export function setDropZoneActive(isActive) {
