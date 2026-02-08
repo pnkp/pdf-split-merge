@@ -4,6 +4,7 @@ const elements = {
   mergeInfo: document.getElementById("merge-info"),
   mergeCount: document.getElementById("merge-count"),
   mergeList: document.getElementById("merge-list"),
+  mergePreview: document.getElementById("merge-preview"),
   mergeButton: document.getElementById("merge-btn"),
   mergeResults: document.getElementById("merge-results"),
   mergeDownloadLink: document.getElementById("merge-download-link"),
@@ -54,6 +55,59 @@ function setMergeCount(count) {
 
 function clearMergeList() {
   elements.mergeList.innerHTML = "";
+}
+
+function clearMergePreviews() {
+  if (!elements.mergePreview) return;
+  elements.mergePreview.innerHTML = "";
+}
+
+async function renderMergePreviewItem(file) {
+  if (!elements.mergePreview) return;
+
+  const previewItem = document.createElement("div");
+  previewItem.className = "preview-item";
+
+  const canvas = document.createElement("canvas");
+  const label = document.createElement("span");
+  label.className = "preview-label";
+  label.textContent = file.name;
+
+  previewItem.appendChild(canvas);
+  previewItem.appendChild(label);
+  elements.mergePreview.appendChild(previewItem);
+
+  if (!window.pdfjsLib) {
+    label.textContent = "Preview unavailable";
+    return;
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument(arrayBuffer).promise;
+  const page = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale: 0.5 });
+  const context = canvas.getContext("2d");
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: context, viewport }).promise;
+}
+
+export async function renderMergePreviews(files) {
+  if (!elements.mergePreview) return;
+  clearMergePreviews();
+  for (const file of files) {
+    try {
+      await renderMergePreviewItem(file);
+    } catch (error) {
+      const fallback = document.createElement("div");
+      fallback.className = "preview-item";
+      const label = document.createElement("span");
+      label.className = "preview-label";
+      label.textContent = "Preview unavailable";
+      fallback.appendChild(label);
+      elements.mergePreview.appendChild(fallback);
+    }
+  }
 }
 
 function attachDragHandlers(item, onReorder) {

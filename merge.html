@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Merge PDFs</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   </head>
   <body>
@@ -27,6 +28,7 @@
       <div id="merge-info" class="file-info" style="display: none">
         <p><strong>Selected files:</strong> <span id="merge-count"></span></p>
         <ul id="merge-list" class="file-list"></ul>
+        <div id="merge-preview" class="preview-grid"></div>
         <button id="merge-btn" class="btn-primary">Merge PDFs</button>
       </div>
 

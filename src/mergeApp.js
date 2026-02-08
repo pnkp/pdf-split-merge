@@ -1,8 +1,10 @@
 import { mergePdfs } from "./merger.js";
+import { initPdfJsWorker } from "./pdfLoader.js";
 import { setupDragAndDropMultiple } from "./dragDrop.js";
 import {
   getMergeElements,
   hideProgress,
+  renderMergePreviews,
   resetMergeResults,
   setMergeDropZoneActive,
   showMergeInfo,
@@ -10,6 +12,8 @@ import {
   showProgressWithLabel,
   updateProgress,
 } from "./uiMerge.js";
+
+initPdfJsWorker();
 
 let mergeFiles = [];
 
@@ -28,6 +32,7 @@ async function handleMergeFiles(files) {
 
   mergeFiles = mergeFileLists(mergeFiles, pdfFiles);
   showMergeInfo(mergeFiles, handleMergeReorder, handleMergeRemove);
+  await renderMergePreviews(mergeFiles);
   resetMergeResults();
 }
 
@@ -37,11 +42,13 @@ function handleMergeReorder(fromIndex, toIndex) {
   updated.splice(toIndex, 0, moved);
   mergeFiles = updated;
   showMergeInfo(mergeFiles, handleMergeReorder, handleMergeRemove);
+  renderMergePreviews(mergeFiles);
 }
 
 function handleMergeRemove(index) {
   mergeFiles = mergeFiles.filter((_, currentIndex) => currentIndex !== index);
   showMergeInfo(mergeFiles, handleMergeReorder, handleMergeRemove);
+  renderMergePreviews(mergeFiles);
 }
 
 elements.mergeInput.addEventListener("change", async (event) => {
