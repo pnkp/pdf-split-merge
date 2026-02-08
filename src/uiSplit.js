@@ -8,7 +8,6 @@ const elements = {
   progressLabel: document.getElementById("progress-label"),
   progressFill: document.getElementById("progress-fill"),
   progressText: document.getElementById("progress-text"),
-  downloadAllButton: document.getElementById("download-all-btn"),
   splitGrid: document.getElementById("split-grid"),
   dropZone: document.getElementById("drop-zone"),
   uploadInput: document.getElementById("pdf-upload"),
@@ -34,7 +33,6 @@ export function resetResults() {
   if (elements.splitGrid) {
     elements.splitGrid.innerHTML = "";
   }
-  setDownloadAllHandler(null);
 }
 
 export function showProgressWithLabel(label) {
@@ -76,6 +74,13 @@ export async function renderSplitTiles(pdfDocument, items) {
     label.className = "preview-label";
     label.textContent = `Page ${pageNum}`;
 
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "preview-checkbox";
+    checkbox.checked = true;
+    checkbox.dataset.page = String(pageNum);
+    previewItem.classList.toggle("is-selected", checkbox.checked);
+
     const downloadLink = document.createElement("a");
     downloadLink.href = items[pageNum - 1].url;
     downloadLink.download = items[pageNum - 1].filename;
@@ -84,17 +89,18 @@ export async function renderSplitTiles(pdfDocument, items) {
 
     previewItem.appendChild(canvas);
     previewItem.appendChild(label);
+    previewItem.appendChild(checkbox);
     previewItem.appendChild(downloadLink);
     elements.splitGrid.appendChild(previewItem);
 
+    previewItem.addEventListener("click", (event) => {
+      if (event.target.closest("a")) return;
+      checkbox.checked = !checkbox.checked;
+      previewItem.classList.toggle("is-selected", checkbox.checked);
+    });
+
     await page.render({ canvasContext: context, viewport }).promise;
   }
-}
-
-export function setDownloadAllHandler(handler) {
-  if (!elements.downloadAllButton) return;
-  elements.downloadAllButton.onclick = handler;
-  elements.downloadAllButton.style.display = handler ? "block" : "none";
 }
 
 export function setDropZoneActive(isActive) {

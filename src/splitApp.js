@@ -8,7 +8,6 @@ import {
   resetResults,
   setFilename,
   setDropZoneActive,
-  setDownloadAllHandler,
   showFileInfo,
   showProgressWithLabel,
   showResults,
@@ -39,19 +38,6 @@ async function handleFile(file) {
   }
 }
 
-function downloadAll(items) {
-  items.forEach((item, index) => {
-    setTimeout(() => {
-      const link = document.createElement("a");
-      link.href = item.url;
-      link.download = item.filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    }, index * 150);
-  });
-}
-
 elements.uploadInput.addEventListener("change", async (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -80,7 +66,6 @@ elements.splitButton.addEventListener("click", async () => {
 
     hideProgress();
     showResults(totalPages);
-    setDownloadAllHandler(() => downloadAll(downloadLinksArray));
     await renderSplitTiles(pdfDocument, downloadLinksArray);
   } catch (error) {
     alert("Error while splitting PDF: " + error.message);
