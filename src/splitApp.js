@@ -13,6 +13,7 @@ import {
   showResults,
   updateProgress,
   getDownloadSelectedButton,
+  getCreateSelectedButton,
 } from "./uiSplit.js";
 
 initPdfJsWorker();
@@ -22,6 +23,7 @@ let pdfDocument = null;
 
 const elements = getSplitElements();
 const downloadSelectedButton = getDownloadSelectedButton();
+const createSelectedButton = getCreateSelectedButton();
 
 async function handleFile(file) {
   if (!file || file.type !== "application/pdf") {
@@ -59,6 +61,16 @@ function updateDownloadSelectedState() {
     selectedPages.length > 0
       ? `Download selected (${selectedPages.length})`
       : "Download selected";
+}
+
+function updateCreateSelectedState() {
+  if (!createSelectedButton) return;
+  const selectedPages = getSelectedPages();
+  createSelectedButton.disabled = selectedPages.length === 0;
+  createSelectedButton.textContent =
+    selectedPages.length > 0
+      ? `Create PDF (${selectedPages.length} pages)`
+      : "Create PDF from selected";
 }
 
 function triggerDownload(url, filename) {
@@ -136,6 +148,48 @@ function downloadSelected(items) {
     });
 }
 
+async function createPdfFromSelected() {
+  const selectedPages = getSelectedPages();
+  if (selectedPages.length === 0) {
+    alert("Please select at least one page!");
+    return;
+  }
+
+  const { PDFDocument } = window.PDFLib || {};
+  if (!PDFDocument) {
+    alert("PDFLib not found. Make sure the pdf-lib script is loaded.");
+    return;
+  }
+
+  if (createSelectedButton) {
+    createSelectedButton.disabled = true;
+    createSelectedButton.textContent = "Preparing PDF";
+  }
+
+  try {
+    const sourceBytes = await pdfFile.arrayBuffer();
+    const sourcePdf = await PDFDocument.load(sourceBytes);
+    const newPdf = await PDFDocument.create();
+    const indices = selectedPages.map((pageNum) => pageNum - 1);
+    const copiedPages = await newPdf.copyPages(sourcePdf, indices);
+    copiedPages.forEach((page) => newPdf.addPage(page));
+
+    const pdfBytes = await newPdf.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const baseFilename = pdfFile
+      ? pdfFile.name.replace(/\.pdf$/i, "")
+      : "selected";
+    triggerDownload(url, `${baseFilename}_selected.pdf`);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    alert("Error while creating PDF: " + error.message);
+    console.error(error);
+  } finally {
+    updateCreateSelectedState();
+  }
+}
+
 elements.uploadInput.addEventListener("change", async (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -156,6 +210,10 @@ async function runSplit() {
     downloadSelectedButton.disabled = true;
     downloadSelectedButton.textContent = "Download selected";
   }
+  if (createSelectedButton) {
+    createSelectedButton.disabled = true;
+    createSelectedButton.textContent = "Create PDF from selected";
+  }
 
   const totalPages = pdfDocument.numPages;
 
@@ -171,11 +229,17 @@ async function runSplit() {
     await renderSplitTiles(
       pdfDocument,
       downloadLinksArray,
-      updateDownloadSelectedState,
+      () => {
+        updateDownloadSelectedState();
+        updateCreateSelectedState();
+      },
     );
     if (downloadSelectedButton) {
       downloadSelectedButton.onclick = () =>
         downloadSelected(downloadLinksArray);
+    }
+    if (createSelectedButton) {
+      createSelectedButton.onclick = () => createPdfFromSelected();
     }
   } catch (error) {
     alert("Error while splitting PDF: " + error.message);

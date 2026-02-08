@@ -9,6 +9,7 @@ const elements = {
   progressFill: document.getElementById("progress-fill"),
   progressText: document.getElementById("progress-text"),
   downloadSelectedButton: document.getElementById("download-selected-btn"),
+  createSelectedButton: document.getElementById("create-selected-btn"),
   splitGrid: document.getElementById("split-grid"),
   dropZone: document.getElementById("drop-zone"),
   uploadInput: document.getElementById("pdf-upload"),
@@ -124,6 +125,10 @@ export async function renderSplitTiles(pdfDocument, items, onSelectionChange) {
 
 export function getDownloadSelectedButton() {
   return elements.downloadSelectedButton;
+}
+
+export function getCreateSelectedButton() {
+  return elements.createSelectedButton;
 }
 
 export function setDropZoneActive(isActive) {
