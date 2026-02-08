@@ -3,28 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PDF Split & Merge</title>
+    <title>Split PDF</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   </head>
   <body>
     <div class="container">
-      <h1>PDF Split & Merge</h1>
+      <h1>Split PDF into Pages</h1>
+      <p class="intro-text">
+        Split one or many PDFs into single-page files, pick which pages to keep,
+        and download them as separate files, a ZIP, or a merged PDF.
+      </p>
 
-      <h2>Split PDF into Pages</h2>
       <div class="upload-section">
         <label for="pdf-upload" class="upload-label" id="drop-zone">
-          <span>Drag a PDF file here or click to choose</span>
+          <span>Drag PDF files here or click to choose</span>
         </label>
-        <input type="file" id="pdf-upload" accept="application/pdf" />
-      </div>
-
-      <div id="file-info" class="file-info" style="display: none">
-        <p><strong>Selected file:</strong> <span id="filename"></span></p>
-        <p><strong>Page count:</strong> <span id="page-count"></span></p>
-        <button id="split-btn" class="btn-primary">Split PDF</button>
+        <input
+          type="file"
+          id="pdf-upload"
+          accept="application/pdf"
+          multiple
+        />
       </div>
 
       <div id="progress" class="progress-section" style="display: none">
@@ -40,47 +42,23 @@
       <div id="results" class="results-section" style="display: none">
         <h2>Results</h2>
         <p class="success-message">
-          PDF has been split into <span id="result-count"></span> files!
+          Generated <span id="result-count"></span> pages.
         </p>
         <button
-          id="download-all-btn"
-          class="btn-primary download-all-btn"
+          id="download-selected-btn"
+          class="btn-primary download-selected-btn"
           type="button"
         >
-          Download all pages
+          Download selected pages
         </button>
-        <div id="download-links"></div>
-      </div>
-
-      <div class="section-divider"></div>
-
-      <h2>Merge Multiple PDFs</h2>
-      <div class="upload-section">
-        <label for="merge-upload" class="upload-label" id="merge-drop-zone">
-          <span>Drag multiple PDF files here or click to choose</span>
-        </label>
-        <input
-          type="file"
-          id="merge-upload"
-          accept="application/pdf"
-          multiple
-        />
-      </div>
-
-      <div id="merge-info" class="file-info" style="display: none">
-        <p><strong>Selected files:</strong> <span id="merge-count"></span></p>
-        <ul id="merge-list" class="file-list"></ul>
-        <button id="merge-btn" class="btn-primary">Merge PDFs</button>
-      </div>
-
-      <div id="merge-results" class="results-section" style="display: none">
-        <h2>Merge Result</h2>
-        <p class="success-message">Your merged PDF is ready!</p>
-        <div id="merge-download" class="download-item">
-          <a id="merge-download-link" class="download-link" href="#"
-            >Download merged PDF</a
-          >
-        </div>
+        <button
+          id="create-selected-btn"
+          class="btn-primary download-selected-btn"
+          type="button"
+        >
+          Merge selected
+        </button>
+        <div id="split-grid" class="preview-grid"></div>
       </div>
 
       <div class="project-info">
@@ -99,6 +77,6 @@
       </div>
     </div>
 
-    <script type="module" src="src/app.js"></script>
+    <script type="module" src="src/splitApp.js"></script>
   </body>
 </html>
