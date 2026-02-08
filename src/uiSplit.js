@@ -12,7 +12,6 @@ const elements = {
   splitGrid: document.getElementById("split-grid"),
   dropZone: document.getElementById("drop-zone"),
   uploadInput: document.getElementById("pdf-upload"),
-  splitButton: document.getElementById("split-btn"),
 };
 
 export function getSplitElements() {

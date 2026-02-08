@@ -35,6 +35,7 @@ async function handleFile(file) {
   try {
     pdfDocument = await loadPdfDocument(file);
     showFileInfo(pdfDocument.numPages);
+    await runSplit();
   } catch (error) {
     alert("Error loading PDF file: " + error.message);
   }
@@ -89,7 +90,7 @@ elements.uploadInput.addEventListener("change", async (event) => {
 
 setupDragAndDrop(elements.dropZone, handleFile, setDropZoneActive);
 
-elements.splitButton.addEventListener("click", async () => {
+async function runSplit() {
   if (!pdfDocument) {
     alert("Please select a PDF file first!");
     return;
@@ -127,4 +128,4 @@ elements.splitButton.addEventListener("click", async () => {
     console.error(error);
     hideProgress();
   }
-});
+}
