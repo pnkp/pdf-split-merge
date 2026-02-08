@@ -4,7 +4,7 @@ import { setupDragAndDrop } from "./dragDrop.js";
 import {
   getSplitElements,
   hideProgress,
-  renderDownloadLinks,
+  renderSplitTiles,
   resetResults,
   setFilename,
   setDropZoneActive,
@@ -80,8 +80,8 @@ elements.splitButton.addEventListener("click", async () => {
 
     hideProgress();
     showResults(totalPages);
-    renderDownloadLinks(downloadLinksArray);
     setDownloadAllHandler(() => downloadAll(downloadLinksArray));
+    await renderSplitTiles(pdfDocument, downloadLinksArray);
   } catch (error) {
     alert("Error while splitting PDF: " + error.message);
     console.error(error);

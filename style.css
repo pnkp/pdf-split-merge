@@ -255,7 +255,49 @@ h2 {
 }
 
 .results-section {
-    margin-top: 30px;
+  margin-top: 30px;
+}
+
+.preview-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin-top: 15px;
+}
+
+.preview-item {
+  background-color: #f8f9ff;
+  border-radius: 10px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.12);
+  text-align: center;
+}
+
+.preview-item canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  background: white;
+}
+
+.preview-label {
+  font-size: 12px;
+  color: #4b4b4b;
+  font-weight: 600;
+}
+
+.preview-download {
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 12px;
+  color: #667eea;
+}
+
+.preview-download:hover {
+  color: #764ba2;
 }
 
 .success-message {

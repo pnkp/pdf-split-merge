@@ -8,8 +8,8 @@ const elements = {
   progressLabel: document.getElementById("progress-label"),
   progressFill: document.getElementById("progress-fill"),
   progressText: document.getElementById("progress-text"),
-  downloadLinks: document.getElementById("download-links"),
   downloadAllButton: document.getElementById("download-all-btn"),
+  splitGrid: document.getElementById("split-grid"),
   dropZone: document.getElementById("drop-zone"),
   uploadInput: document.getElementById("pdf-upload"),
   splitButton: document.getElementById("split-btn"),
@@ -31,7 +31,9 @@ export function showFileInfo(numPages) {
 
 export function resetResults() {
   elements.results.style.display = "none";
-  elements.downloadLinks.innerHTML = "";
+  if (elements.splitGrid) {
+    elements.splitGrid.innerHTML = "";
+  }
   setDownloadAllHandler(null);
 }
 
@@ -55,20 +57,38 @@ export function showResults(totalPages) {
   elements.resultCount.textContent = totalPages;
 }
 
-export function renderDownloadLinks(items) {
-  items.forEach((item) => {
-    const linkDiv = document.createElement("div");
-    linkDiv.className = "download-item";
+export async function renderSplitTiles(pdfDocument, items) {
+  if (!elements.splitGrid) return;
+  elements.splitGrid.innerHTML = "";
+
+  for (let pageNum = 1; pageNum <= items.length; pageNum += 1) {
+    const page = await pdfDocument.getPage(pageNum);
+    const viewport = page.getViewport({ scale: 0.5 });
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    const previewItem = document.createElement("div");
+    previewItem.className = "preview-item";
+
+    const label = document.createElement("span");
+    label.className = "preview-label";
+    label.textContent = `Page ${pageNum}`;
 
     const downloadLink = document.createElement("a");
-    downloadLink.href = item.url;
-    downloadLink.download = item.filename;
-    downloadLink.textContent = `PDF ${item.filename}`;
-    downloadLink.className = "download-link";
+    downloadLink.href = items[pageNum - 1].url;
+    downloadLink.download = items[pageNum - 1].filename;
+    downloadLink.textContent = "Download";
+    downloadLink.className = "preview-download";
 
-    linkDiv.appendChild(downloadLink);
-    elements.downloadLinks.appendChild(linkDiv);
-  });
+    previewItem.appendChild(canvas);
+    previewItem.appendChild(label);
+    previewItem.appendChild(downloadLink);
+    elements.splitGrid.appendChild(previewItem);
+
+    await page.render({ canvasContext: context, viewport }).promise;
+  }
 }
 
 export function setDownloadAllHandler(handler) {
