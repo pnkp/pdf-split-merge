@@ -56,9 +56,14 @@ export function showResults(totalPages) {
   elements.resultCount.textContent = totalPages;
 }
 
+export function updateResultCount(totalPages) {
+  elements.resultCount.textContent = totalPages;
+}
+
 export async function renderSplitTiles(
   entries,
   onSelectionChange,
+  onRemove,
   { append = false, startIndex = 0 } = {},
 ) {
   if (!elements.splitGrid) return;
@@ -77,7 +82,6 @@ export async function renderSplitTiles(
 
   for (let index = 0; index < entries.length; index += 1) {
     const entry = entries[index];
-    const entryIndex = startIndex + index;
     const page = await entry.pdfDocument.getPage(entry.pageNum);
     const viewport = page.getViewport({ scale: 0.5 });
     const canvas = document.createElement("canvas");
@@ -96,7 +100,7 @@ export async function renderSplitTiles(
     checkbox.type = "checkbox";
     checkbox.className = "preview-checkbox";
     checkbox.checked = true;
-    checkbox.dataset.index = String(entryIndex);
+    checkbox.dataset.entryId = String(entry.id);
     previewItem.classList.toggle("is-selected", checkbox.checked);
 
     const downloadButton = document.createElement("button");
@@ -108,10 +112,23 @@ export async function renderSplitTiles(
       triggerDownload(entry.item);
     });
 
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.className = "preview-remove";
+    removeButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (onRemove) {
+        onRemove(entry.id, previewItem);
+      }
+    });
+
     previewItem.appendChild(canvas);
     previewItem.appendChild(label);
     previewItem.appendChild(checkbox);
     previewItem.appendChild(downloadButton);
+    previewItem.appendChild(removeButton);
     elements.splitGrid.appendChild(previewItem);
 
     previewItem.addEventListener("click", (event) => {

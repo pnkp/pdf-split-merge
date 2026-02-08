@@ -14,6 +14,7 @@ import {
   updateProgress,
   getDownloadSelectedButton,
   getCreateSelectedButton,
+  updateResultCount,
 } from "./uiSplit.js";
 
 initPdfJsWorker();
@@ -21,6 +22,7 @@ initPdfJsWorker();
 let pdfFiles = [];
 let pdfDocuments = [];
 let splitEntries = [];
+let nextEntryId = 1;
 
 const elements = getSplitElements();
 const downloadSelectedButton = getDownloadSelectedButton();
@@ -67,33 +69,33 @@ async function handleFiles(files) {
   }
 }
 
-function getSelectedIndexes() {
+function getSelectedIds() {
   const checkboxes = Array.from(
     document.querySelectorAll(".preview-checkbox:checked"),
   );
   return checkboxes
-    .map((checkbox) => Number(checkbox.dataset.index))
-    .filter((index) => Number.isFinite(index))
+    .map((checkbox) => Number(checkbox.dataset.entryId))
+    .filter((entryId) => Number.isFinite(entryId))
     .sort((a, b) => a - b);
 }
 
 function updateDownloadSelectedState() {
   if (!downloadSelectedButton) return;
-  const selectedIndexes = getSelectedIndexes();
-  downloadSelectedButton.disabled = selectedIndexes.length === 0;
+  const selectedIds = getSelectedIds();
+  downloadSelectedButton.disabled = selectedIds.length === 0;
   downloadSelectedButton.textContent =
-    selectedIndexes.length > 0
-      ? `Download selected (${selectedIndexes.length})`
+    selectedIds.length > 0
+      ? `Download selected (${selectedIds.length})`
       : "Download selected";
 }
 
 function updateCreateSelectedState() {
   if (!createSelectedButton) return;
-  const selectedIndexes = getSelectedIndexes();
-  createSelectedButton.disabled = selectedIndexes.length === 0;
+  const selectedIds = getSelectedIds();
+  createSelectedButton.disabled = selectedIds.length === 0;
   createSelectedButton.textContent =
-    selectedIndexes.length > 0
-      ? `Create PDF (${selectedIndexes.length} pages)`
+    selectedIds.length > 0
+      ? `Create PDF (${selectedIds.length} pages)`
       : "Create PDF from selected";
 }
 
@@ -112,8 +114,9 @@ async function buildZip(items, pageNumbers) {
   }
 
   const zip = new window.JSZip();
-  for (const index of pageNumbers) {
-    const item = items[index]?.item;
+  for (const entryId of pageNumbers) {
+    const entry = items.find((current) => current.id === entryId);
+    const item = entry?.item;
     if (!item) continue;
     const response = await fetch(item.url);
     const blob = await response.blob();
@@ -135,14 +138,14 @@ async function buildZip(items, pageNumbers) {
 }
 
 function downloadSelected(items) {
-  const selectedIndexes = getSelectedIndexes();
-  if (selectedIndexes.length === 0) {
+  const selectedIds = getSelectedIds();
+  if (selectedIds.length === 0) {
     alert("Please select at least one page!");
     return;
   }
 
-  if (selectedIndexes.length === 1) {
-    const entry = items[selectedIndexes[0]];
+  if (selectedIds.length === 1) {
+    const entry = items.find((current) => current.id === selectedIds[0]);
     if (entry?.item) {
       triggerDownload(entry.item.url, entry.item.filename);
     }
@@ -154,7 +157,7 @@ function downloadSelected(items) {
     downloadSelectedButton.textContent = "Preparing ZIP";
   }
 
-  buildZip(items, selectedIndexes)
+  buildZip(items, selectedIds)
     .then(({ blob, filename }) => {
       const url = URL.createObjectURL(blob);
       triggerDownload(url, filename);
@@ -173,8 +176,8 @@ function downloadSelected(items) {
 }
 
 async function createPdfFromSelected() {
-  const selectedIndexes = getSelectedIndexes();
-  if (selectedIndexes.length === 0) {
+  const selectedIds = getSelectedIds();
+  if (selectedIds.length === 0) {
     alert("Please select at least one page!");
     return;
   }
@@ -192,8 +195,8 @@ async function createPdfFromSelected() {
 
   try {
     const newPdf = await PDFDocument.create();
-    for (const index of selectedIndexes) {
-      const entry = splitEntries[index];
+    for (const entryId of selectedIds) {
+      const entry = splitEntries.find((current) => current.id === entryId);
       if (!entry?.item) continue;
       const response = await fetch(entry.item.url);
       const blob = await response.blob();
@@ -214,6 +217,16 @@ async function createPdfFromSelected() {
   } finally {
     updateCreateSelectedState();
   }
+}
+
+function handleRemoveEntry(entryId, element) {
+  splitEntries = splitEntries.filter((entry) => entry.id !== entryId);
+  if (element) {
+    element.remove();
+  }
+  updateResultCount(splitEntries.length);
+  updateDownloadSelectedState();
+  updateCreateSelectedState();
 }
 
 elements.uploadInput.addEventListener("change", async (event) => {
@@ -267,11 +280,13 @@ async function runSplit({
 
       for (let pageNum = 1; pageNum <= fileTotalPages; pageNum += 1) {
         newEntries.push({
+          id: nextEntryId,
           item: fileItems[pageNum - 1],
           pdfDocument: document,
           pageNum,
           fileName: file.name,
         });
+        nextEntryId += 1;
       }
 
       processedPages += fileTotalPages;
@@ -286,7 +301,7 @@ async function runSplit({
     await renderSplitTiles(entriesToRender, () => {
       updateDownloadSelectedState();
       updateCreateSelectedState();
-    }, { append, startIndex });
+    }, handleRemoveEntry, { append, startIndex });
     if (downloadSelectedButton) {
       downloadSelectedButton.onclick = () => downloadSelected(splitEntries);
     }
