@@ -59,6 +59,15 @@ export async function renderSplitTiles(pdfDocument, items, onSelectionChange) {
   if (!elements.splitGrid) return;
   elements.splitGrid.innerHTML = "";
 
+  function triggerDownload(item) {
+    const link = document.createElement("a");
+    link.href = item.url;
+    link.download = item.filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
   for (let pageNum = 1; pageNum <= items.length; pageNum += 1) {
     const page = await pdfDocument.getPage(pageNum);
     const viewport = page.getViewport({ scale: 0.5 });
@@ -81,20 +90,23 @@ export async function renderSplitTiles(pdfDocument, items, onSelectionChange) {
     checkbox.dataset.page = String(pageNum);
     previewItem.classList.toggle("is-selected", checkbox.checked);
 
-    const downloadLink = document.createElement("a");
-    downloadLink.href = items[pageNum - 1].url;
-    downloadLink.download = items[pageNum - 1].filename;
-    downloadLink.textContent = "Download";
-    downloadLink.className = "preview-download";
+    const downloadButton = document.createElement("button");
+    downloadButton.type = "button";
+    downloadButton.textContent = "Download";
+    downloadButton.className = "preview-download";
+    downloadButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      triggerDownload(items[pageNum - 1]);
+    });
 
     previewItem.appendChild(canvas);
     previewItem.appendChild(label);
     previewItem.appendChild(checkbox);
-    previewItem.appendChild(downloadLink);
+    previewItem.appendChild(downloadButton);
     elements.splitGrid.appendChild(previewItem);
 
     previewItem.addEventListener("click", (event) => {
-      if (event.target.closest("a")) return;
+      if (event.target.closest("button")) return;
       checkbox.checked = !checkbox.checked;
       previewItem.classList.toggle("is-selected", checkbox.checked);
       if (onSelectionChange) {

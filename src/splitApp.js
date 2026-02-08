@@ -61,6 +61,43 @@ function updateDownloadSelectedState() {
       : "Download selected";
 }
 
+function triggerDownload(url, filename) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+async function buildZip(items, pageNumbers) {
+  if (!window.JSZip) {
+    throw new Error("ZIP library not available.");
+  }
+
+  const zip = new window.JSZip();
+  for (const pageNum of pageNumbers) {
+    const item = items[pageNum - 1];
+    if (!item) continue;
+    const response = await fetch(item.url);
+    const blob = await response.blob();
+    zip.file(item.filename, blob);
+  }
+
+  const baseFilename = pdfFile
+    ? pdfFile.name.replace(/\.pdf$/i, "")
+    : "split";
+  const zipBlob = await zip.generateAsync(
+    { type: "blob" },
+    (metadata) => {
+      if (!downloadSelectedButton) return;
+      const percent = Math.round(metadata.percent);
+      downloadSelectedButton.textContent = `Preparing ZIP (${percent}%)`;
+    },
+  );
+  return { blob: zipBlob, filename: `${baseFilename}_pages.zip` };
+}
+
 function downloadSelected(items) {
   const selectedPages = getSelectedPages();
   if (selectedPages.length === 0) {
@@ -68,18 +105,35 @@ function downloadSelected(items) {
     return;
   }
 
-  selectedPages.forEach((pageNum, index) => {
-    const item = items[pageNum - 1];
-    if (!item) return;
-    setTimeout(() => {
-      const link = document.createElement("a");
-      link.href = item.url;
-      link.download = item.filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    }, index * 150);
-  });
+  if (selectedPages.length === 1) {
+    const item = items[selectedPages[0] - 1];
+    if (item) {
+      triggerDownload(item.url, item.filename);
+    }
+    return;
+  }
+
+  if (downloadSelectedButton) {
+    downloadSelectedButton.disabled = true;
+    downloadSelectedButton.textContent = "Preparing ZIP";
+  }
+
+  buildZip(items, selectedPages)
+    .then(({ blob, filename }) => {
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, filename);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    })
+    .catch((error) => {
+      alert("Error while preparing ZIP: " + error.message);
+      console.error(error);
+    })
+    .finally(() => {
+      if (downloadSelectedButton) {
+        downloadSelectedButton.disabled = false;
+        updateDownloadSelectedState();
+      }
+    });
 }
 
 elements.uploadInput.addEventListener("change", async (event) => {
