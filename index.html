@@ -3,19 +3,58 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PDF Tools</title>
+    <title>Split PDF</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   </head>
   <body>
     <div class="container">
-      <h1>PDF Tools</h1>
-      <p class="intro-text">
-        Choose the workflow you need. Split PDFs into single pages or merge
-        multiple files into one.
-      </p>
-      <div class="home-actions">
-        <a class="btn-primary btn-link" href="split.html">Split PDF</a>
-        <a class="btn-primary btn-link" href="merge.html">Merge PDFs</a>
+      <h1>Split PDF into Pages</h1>
+
+      <div class="upload-section">
+        <label for="pdf-upload" class="upload-label" id="drop-zone">
+          <span>Drag PDF files here or click to choose</span>
+        </label>
+        <input
+          type="file"
+          id="pdf-upload"
+          accept="application/pdf"
+          multiple
+        />
+      </div>
+
+      <div id="progress" class="progress-section" style="display: none">
+        <p>
+          <span id="progress-label">Processing</span>...
+          <span id="progress-text">0%</span>
+        </p>
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div id="results" class="results-section" style="display: none">
+        <h2>Results</h2>
+        <p class="success-message">
+          Generated <span id="result-count"></span> pages.
+        </p>
+        <button
+          id="download-selected-btn"
+          class="btn-primary download-selected-btn"
+          type="button"
+        >
+          Download selected pages
+        </button>
+        <button
+          id="create-selected-btn"
+          class="btn-primary download-selected-btn"
+          type="button"
+        >
+          Merge selected
+        </button>
+        <div id="split-grid" class="preview-grid"></div>
       </div>
 
       <div class="project-info">
@@ -33,5 +72,7 @@
         </a>
       </div>
     </div>
+
+    <script type="module" src="src/splitApp.js"></script>
   </body>
 </html>
