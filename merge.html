@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Merge PDFs</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <a class="back-link" href="index.html">Back to tools</a>
+      <h1>Merge Multiple PDFs</h1>
+
+      <div class="upload-section">
+        <label for="merge-upload" class="upload-label" id="merge-drop-zone">
+          <span>Drag multiple PDF files here or click to choose</span>
+        </label>
+        <input
+          type="file"
+          id="merge-upload"
+          accept="application/pdf"
+          multiple
+        />
+      </div>
+
+      <div id="merge-info" class="file-info" style="display: none">
+        <p><strong>Selected files:</strong> <span id="merge-count"></span></p>
+        <ul id="merge-list" class="file-list"></ul>
+        <button id="merge-btn" class="btn-primary">Merge PDFs</button>
+      </div>
+
+      <div id="progress" class="progress-section" style="display: none">
+        <p>
+          <span id="progress-label">Processing</span>...
+          <span id="progress-text">0%</span>
+        </p>
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div id="merge-results" class="results-section" style="display: none">
+        <h2>Merge Result</h2>
+        <p class="success-message">Your merged PDF is ready!</p>
+        <div id="merge-download" class="download-item">
+          <a id="merge-download-link" class="download-link" href="#"
+            >Download merged PDF</a
+          >
+        </div>
+      </div>
+
+      <div class="project-info">
+        <p>
+          This project is open source. Your files are processed only in your
+          browser and are never uploaded or stored anywhere.
+        </p>
+        <a
+          class="project-link"
+          href="https://github.com/pnkp/pdf-split-merge"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View the GitHub repository
+        </a>
+      </div>
+    </div>
+
+    <script type="module" src="src/mergeApp.js"></script>
+  </body>
+</html>

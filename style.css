@@ -15,29 +15,67 @@ body {
 }
 
 .container {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    padding: 40px;
-    max-width: 600px;
-    width: 100%;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+}
+
+h1 + .intro-text {
+  margin-top: -10px;
 }
 
 h1 {
-    color: #333;
-    margin-bottom: 30px;
-    text-align: center;
-    font-size: 28px;
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 28px;
 }
 
 h2 {
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 22px;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+.intro-text {
+  color: #4b4b4b;
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.home-actions {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.btn-link {
+  text-align: center;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 20px;
+}
+
+.back-link:hover {
+  color: #764ba2;
 }
 
 .upload-section {
-    margin-bottom: 30px;
+  margin-bottom: 30px;
 }
 
 .upload-label {
