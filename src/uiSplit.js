@@ -10,6 +10,11 @@ const elements = {
   splitGrid: document.getElementById("split-grid"),
   dropZone: document.getElementById("drop-zone"),
   uploadInput: document.getElementById("pdf-upload"),
+  modal: document.getElementById("preview-modal"),
+  modalCanvas: document.getElementById("modal-canvas"),
+  modalPageInfo: document.getElementById("modal-page-info"),
+  modalClose: document.querySelector(".modal-close"),
+  modalOverlay: document.querySelector(".modal-overlay"),
 };
 
 export function getSplitElements() {
@@ -92,12 +97,24 @@ export async function renderSplitTiles(
     checkbox.dataset.entryId = String(entry.id);
     previewItem.classList.toggle("is-selected", checkbox.checked);
 
+    const previewButton = document.createElement("button");
+    previewButton.type = "button";
+    previewButton.className = "preview-zoom-btn";
+    previewButton.innerHTML = "&#128269;";
+    previewButton.title = "Preview";
+    previewButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      await showPagePreview(entry);
+    });
+
     const downloadButton = document.createElement("button");
     downloadButton.type = "button";
     downloadButton.textContent = "Download";
     downloadButton.className = "preview-download";
     downloadButton.addEventListener("click", (event) => {
       event.preventDefault();
+      event.stopPropagation();
       triggerDownload(entry.item);
     });
 
@@ -114,6 +131,7 @@ export async function renderSplitTiles(
     });
 
     previewItem.appendChild(canvas);
+    previewItem.appendChild(previewButton);
     previewItem.appendChild(label);
     previewItem.appendChild(checkbox);
     previewItem.appendChild(downloadButton);
@@ -122,6 +140,7 @@ export async function renderSplitTiles(
 
     previewItem.addEventListener("click", (event) => {
       if (event.target.closest("button")) return;
+
       checkbox.checked = !checkbox.checked;
       previewItem.classList.toggle("is-selected", checkbox.checked);
       if (onSelectionChange) {
@@ -194,3 +213,55 @@ export function getCreateSelectedButton() {
 export function setDropZoneActive(isActive) {
   elements.dropZone.classList.toggle("drag-over", isActive);
 }
+
+export async function showPagePreview(entry) {
+  if (!elements.modal || !elements.modalCanvas || !elements.modalPageInfo) return;
+
+  const page = await entry.pdfDocument.getPage(entry.pageNum);
+
+  const maxWidth = window.innerWidth * 0.85;
+  const maxHeight = window.innerHeight * 0.75;
+
+  let viewport = page.getViewport({ scale: 1 });
+
+  const scaleX = maxWidth / viewport.width;
+  const scaleY = maxHeight / viewport.height;
+  const scale = Math.min(scaleX, scaleY, 3);
+
+  viewport = page.getViewport({ scale });
+
+  elements.modalCanvas.width = viewport.width;
+  elements.modalCanvas.height = viewport.height;
+
+  const context = elements.modalCanvas.getContext("2d");
+  await page.render({ canvasContext: context, viewport }).promise;
+
+  elements.modalPageInfo.textContent = `${entry.fileName} - Page ${entry.pageNum}`;
+  elements.modal.style.display = "flex";
+
+  document.body.style.overflow = "hidden";
+}
+
+export function hidePagePreview() {
+  if (!elements.modal) return;
+  elements.modal.style.display = "none";
+  document.body.style.overflow = "";
+}
+
+function setupModalListeners() {
+  if (elements.modalClose) {
+    elements.modalClose.addEventListener("click", hidePagePreview);
+  }
+
+  if (elements.modalOverlay) {
+    elements.modalOverlay.addEventListener("click", hidePagePreview);
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && elements.modal?.style.display === "flex") {
+      hidePagePreview();
+    }
+  });
+}
+
+setupModalListeners();
