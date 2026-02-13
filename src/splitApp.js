@@ -222,6 +222,31 @@ function handleRemoveEntry(entryId, element) {
   updateCreateSelectedState();
 }
 
+function handleReorder(fromId, toId) {
+  const fromIndex = splitEntries.findIndex((entry) => entry.id === fromId);
+  const toIndex = splitEntries.findIndex((entry) => entry.id === toId);
+
+  if (fromIndex === -1 || toIndex === -1) return;
+
+  const [movedEntry] = splitEntries.splice(fromIndex, 1);
+  splitEntries.splice(toIndex, 0, movedEntry);
+
+  const grid = elements.splitGrid;
+  if (!grid) return;
+
+  const items = Array.from(grid.children);
+  const fromItem = items.find((item) => item.dataset.entryId === String(fromId));
+  const toItem = items.find((item) => item.dataset.entryId === String(toId));
+
+  if (!fromItem || !toItem) return;
+
+  if (fromIndex < toIndex) {
+    toItem.after(fromItem);
+  } else {
+    toItem.before(fromItem);
+  }
+}
+
 elements.uploadInput.addEventListener("change", async (event) => {
   const files = Array.from(event.target.files || []);
   if (files.length === 0) return;
@@ -294,7 +319,7 @@ async function runSplit({
     await renderSplitTiles(entriesToRender, () => {
       updateDownloadSelectedState();
       updateCreateSelectedState();
-    }, handleRemoveEntry, { append, startIndex });
+    }, handleRemoveEntry, { append, startIndex, onReorder: handleReorder });
     if (downloadSelectedButton) {
       downloadSelectedButton.onclick = () => downloadSelected(splitEntries);
     }

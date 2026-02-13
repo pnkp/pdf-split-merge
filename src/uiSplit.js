@@ -51,7 +51,7 @@ export async function renderSplitTiles(
   entries,
   onSelectionChange,
   onRemove,
-  { append = false, startIndex = 0 } = {},
+  { append = false, startIndex = 0, onReorder = null } = {},
 ) {
   if (!elements.splitGrid) return;
   if (!append) {
@@ -78,6 +78,8 @@ export async function renderSplitTiles(
 
     const previewItem = document.createElement("div");
     previewItem.className = "preview-item";
+    previewItem.draggable = true;
+    previewItem.dataset.entryId = String(entry.id);
 
     const label = document.createElement("span");
     label.className = "preview-label";
@@ -127,12 +129,58 @@ export async function renderSplitTiles(
       }
     });
 
+    setupDragAndDropForItem(previewItem, onReorder);
+
     await page.render({ canvasContext: context, viewport }).promise;
   }
 
   if (onSelectionChange) {
     onSelectionChange();
   }
+}
+
+function setupDragAndDropForItem(item, onReorder) {
+  item.addEventListener("dragstart", (e) => {
+    item.classList.add("is-dragging");
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", item.dataset.entryId);
+  });
+
+  item.addEventListener("dragend", () => {
+    item.classList.remove("is-dragging");
+    document.querySelectorAll(".preview-item.drag-over").forEach((el) => {
+      el.classList.remove("drag-over");
+    });
+  });
+
+  item.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    const draggingItem = document.querySelector(".preview-item.is-dragging");
+    if (!draggingItem || draggingItem === item) return;
+
+    item.classList.add("drag-over");
+  });
+
+  item.addEventListener("dragleave", () => {
+    item.classList.remove("drag-over");
+  });
+
+  item.addEventListener("drop", (e) => {
+    e.preventDefault();
+    item.classList.remove("drag-over");
+
+    const draggingItem = document.querySelector(".preview-item.is-dragging");
+    if (!draggingItem || draggingItem === item) return;
+
+    const fromId = parseInt(draggingItem.dataset.entryId);
+    const toId = parseInt(item.dataset.entryId);
+
+    if (onReorder && fromId !== toId) {
+      onReorder(fromId, toId);
+    }
+  });
 }
 
 export function getDownloadSelectedButton() {

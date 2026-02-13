@@ -275,8 +275,26 @@ h2 {
   box-shadow: 0 10px 20px rgba(102, 126, 234, 0.12);
   text-align: center;
   position: relative;
-  cursor: pointer;
+  cursor: grab;
   border: 2px solid transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.preview-item:active {
+  cursor: grabbing;
+}
+
+.preview-item.is-dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+.preview-item.drag-over {
+  border-color: #764ba2;
+  background-color: #ece8ff;
+  box-shadow: 0 15px 30px rgba(118, 75, 162, 0.3);
+  transform: scale(1.05);
 }
 
 .preview-item canvas {
