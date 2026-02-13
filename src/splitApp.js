@@ -1,6 +1,6 @@
-import { splitPdf } from "./splitter.js";
-import { initPdfJsWorker, loadPdfDocument } from "./pdfLoader.js";
-import { setupDragAndDropMultiple } from "./dragDrop.js";
+import { splitPdf } from "./pdf/splitter.js";
+import { initPdfJsWorker, loadPdfDocument } from "./pdf/pdfLoader.js";
+import { setupDragAndDropMultiple } from "./ui/dragDrop.js";
 import {
   getSplitElements,
   hideProgress,
@@ -13,7 +13,7 @@ import {
   getDownloadSelectedButton,
   getCreateSelectedButton,
   updateResultCount,
-} from "./uiSplit.js";
+} from "./ui/uiSplit.js";
 
 initPdfJsWorker();
 
@@ -40,10 +40,7 @@ async function handleFiles(files) {
       newFiles.map((file) => loadPdfDocument(file)),
     );
     pdfDocuments = [...pdfDocuments, ...newDocuments];
-    const totalPages = pdfDocuments.reduce(
-      (sum, doc) => sum + doc.numPages,
-      0,
-    );
+    const totalPages = pdfDocuments.reduce((sum, doc) => sum + doc.numPages, 0);
     const newTotalPages = newDocuments.reduce(
       (sum, doc) => sum + doc.numPages,
       0,
@@ -123,17 +120,12 @@ async function buildZip(items, pageNumbers) {
     zip.file(item.filename, blob);
   }
 
-  const baseFilename = pdfFiles.length
-    ? "split"
-    : "documents";
-  const zipBlob = await zip.generateAsync(
-    { type: "blob" },
-    (metadata) => {
-      if (!downloadSelectedButton) return;
-      const percent = Math.round(metadata.percent);
-      downloadSelectedButton.textContent = `Preparing ZIP (${percent}%)`;
-    },
-  );
+  const baseFilename = pdfFiles.length ? "split" : "documents";
+  const zipBlob = await zip.generateAsync({ type: "blob" }, (metadata) => {
+    if (!downloadSelectedButton) return;
+    const percent = Math.round(metadata.percent);
+    downloadSelectedButton.textContent = `Preparing ZIP (${percent}%)`;
+  });
   return { blob: zipBlob, filename: `${baseFilename}_pages.zip` };
 }
 
@@ -242,7 +234,9 @@ function handleReorder(fromId, toId) {
   if (!grid) return;
 
   const items = Array.from(grid.children);
-  const fromItem = items.find((item) => item.dataset.entryId === String(fromId));
+  const fromItem = items.find(
+    (item) => item.dataset.entryId === String(fromId),
+  );
   const toItem = items.find((item) => item.dataset.entryId === String(toId));
 
   if (!fromItem || !toItem) return;
@@ -323,10 +317,15 @@ async function runSplit({
 
     hideProgress();
     showResults(totalPagesAll);
-    await renderSplitTiles(entriesToRender, () => {
-      updateDownloadSelectedState();
-      updateCreateSelectedState();
-    }, handleRemoveEntry, { append, startIndex, onReorder: handleReorder });
+    await renderSplitTiles(
+      entriesToRender,
+      () => {
+        updateDownloadSelectedState();
+        updateCreateSelectedState();
+      },
+      handleRemoveEntry,
+      { append, startIndex, onReorder: handleReorder },
+    );
     if (downloadSelectedButton) {
       downloadSelectedButton.onclick = () => downloadSelected(splitEntries);
     }
