@@ -61,13 +61,20 @@ async function handleFiles(files) {
 }
 
 function getSelectedIds() {
-  const checkboxes = Array.from(
-    document.querySelectorAll(".preview-checkbox:checked"),
-  );
-  return checkboxes
-    .map((checkbox) => Number(checkbox.dataset.entryId))
-    .filter((entryId) => Number.isFinite(entryId))
-    .sort((a, b) => a - b);
+  const allItems = Array.from(document.querySelectorAll(".preview-item"));
+  const selectedIds = [];
+
+  for (const item of allItems) {
+    const checkbox = item.querySelector(".preview-checkbox");
+    if (checkbox && checkbox.checked) {
+      const entryId = Number(checkbox.dataset.entryId);
+      if (Number.isFinite(entryId)) {
+        selectedIds.push(entryId);
+      }
+    }
+  }
+
+  return selectedIds;
 }
 
 function updateDownloadSelectedState() {
