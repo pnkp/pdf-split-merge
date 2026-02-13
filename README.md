@@ -2,6 +2,8 @@
 
 A simple in-browser tool to split PDFs into single pages, select what you need, and download pages as separate files, a ZIP, or a merged PDF. All processing happens locally in your browser.
 
+https://pnkp.github.io/pdf-split-merge/
+
 ## Features
 
 - Split one or many PDFs into single-page files
